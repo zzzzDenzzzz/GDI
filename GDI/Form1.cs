@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Windows.Forms;
+using Timer = System.Timers.Timer;
 
 namespace GDI
 {
@@ -9,68 +10,55 @@ namespace GDI
         Player player;
         Circle circle;
         Random random;
-        int speed = 1;
-        int kill = 0;
-
+        int speed = 2;
+        Timer timer;
         public Form1()
         {
             InitializeComponent();
-            KeyDown += new KeyEventHandler(Press);
-            random = new Random();
-            player = new Player(new Point(Width / 2, Height / 2));
+            KeyDown += new KeyEventHandler(press);
+            player = new Player(new Point(this.Width / 2, this.Height / 2));
             circle = new Circle(random, Width, Height);
+            FormClosing += new FormClosingEventHandler(close);
+            timer = new Timer(1);
+            timer.Elapsed += OnTimedEvent;
+            timer.AutoReset = true;
+            timer.Enabled = true;
         }
 
-        protected override void OnPaint(PaintEventArgs e)
+        private void OnTimedEvent(object sender, System.Timers.ElapsedEventArgs e)
         {
-            player.Paint(e.Graphics);
-            circle.Paint(e.Graphics);
+            updateGame();
         }
 
-        void Press(object o, KeyEventArgs k)
+        public void close(object sender, FormClosingEventArgs args)
         {
-            switch (k.KeyCode)
+            player.stop();
+            timer.Stop();
+            timer.Dispose();
+        }
+        protected override void OnPaint(PaintEventArgs args)
+        {
+            player.paint(args.Graphics);
+        }
+
+        public void press(object sender, KeyEventArgs key)
+        {
+            if (player.currentDirection() == Direction.Stop)
             {
-                case Keys.Left:
-                    player.MoveX(-speed, Width);
-                    break;
-                case Keys.Right:
-                    player.MoveX(speed, Width);
-                    break;
-                case Keys.Up:
-                    player.MoveY(-speed);
-                    break;
-                case Keys.Down:
-                    player.MoveY(speed);
-                    break;
+                player.setDirection(key.KeyCode);
+                player.start();
             }
-            UpdateGame();
-            G();
-        }
-
-        void G()
-        {
-            if (player.GetPoint() == circle.GetPoint())
+            else
             {
-                circle = new Circle(random, Width, Height);
-                UpdateGame2();
-                kill++;
+                player.setDirection(key.KeyCode);
             }
         }
 
-        void UpdateGame()
-        {
-            Text = $"player:{player.GetPoint().X} {player.GetPoint().Y}" +
-                $" circle:{circle.GetPoint().X} {circle.GetPoint().Y} kill:{kill}";
-            UpdateGame2();
-        }
-
-        void UpdateGame2()
+        private void updateGame()
         {
             Graphics graphics = CreateGraphics();
             graphics.Clear(BackColor);
-            player.Paint(graphics);
-            circle.Paint(graphics);
+            player.paint(graphics);
         }
     }
 }

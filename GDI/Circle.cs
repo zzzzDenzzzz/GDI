@@ -17,12 +17,7 @@ namespace GDI
         public void Paint(Graphics graphics)
         {
             Rectangle rectangle = new Rectangle(point, new Size(20, 20));
-            graphics.DrawEllipse(new Pen(Color.Orange), rectangle);
-        }
-
-        public Point GetPoint()
-        {
-            return point;
+            graphics.DrawEllipse(new Pen(Color.Orange, 5), rectangle);
         }
     }
 }
